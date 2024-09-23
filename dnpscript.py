@@ -15,7 +15,6 @@ La información fue subida a Google Drive
 # dependencias
 from google.colab import drive
 drive.mount('/content/drive')
-base_folder = '/content/drive/My Drive/GEIH_2024'
 import pandas as pd
 import os
 
@@ -109,7 +108,7 @@ def calcular_totales(datos_cruzados):
 
 # Lista de meses y ruta
 meses = ['Ene_2023', 'Feb_2023', 'Mar_2023', 'Abr_2023', 'May_2023', 'Jun_2023', 'Jul_2023', 'Ago_2023', 'Sep_2023', 'Oct_2023', 'Nov_2023', 'Dic_2023']
-ruta_base = '/content/drive/My Drive/GEIH_2023/'
+ruta_base = '/content/drive/My Drive/Prueba_DNP_Subdireccion_Empleo_y_Seguridad_Social/GEIH_2023/'
 
 # Se invoca la función principal de cargar y cruzar los datos
 datos_cruzados = cargar_y_cruzar_datos(meses, ruta_base)
