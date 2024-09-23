@@ -21,6 +21,9 @@ import os
 # Esta función sirve para cargar datos a colab con exclusivamente las columnas relevantes y hacer el cruce inicial
 # Para este ejercicio, cargué la información mensual de 2023 de los módulos de ocupados y características generales, seguridad social en salud y educación
 
+# Esta función sirve para cargar datos a colab con exclusivamente las columnas relevantes y hacer el cruce inicial
+# Para este ejercicio, cargué la información mensual de 2023 de los módulos de ocupados y características generales, seguridad social en salud y educación
+
 def cargar_y_cruzar_datos(meses, ruta_base):
     caracteristicas_list = []
     ocupados_list = []
@@ -37,13 +40,13 @@ def cargar_y_cruzar_datos(meses, ruta_base):
                 usecols=['DIRECTORIO', 'SECUENCIA_P', 'ORDEN', 'P3271', 'P6040', 'P6070', 'P6071', 'P6050', 'P6100', 'FEX_C18'],
                 low_memory=False
             )
-
+            
             # Se cargan las columnas relevantes de ocupados
             ocupados = pd.read_csv(
                 os.path.join(ruta_carpeta, 'Ocupados.CSV'),
                 encoding='latin1',
                 sep=';',
-                usecols=['DIRECTORIO', 'SECUENCIA_P', 'ORDEN', 'OCI'], # no se carga 'FEX_C18' pues se hace el merge con el anterior módulo
+                usecols=['DIRECTORIO', 'SECUENCIA_P', 'ORDEN', 'OCI', 'P6500'], # no se carga 'FEX_C18' pues se hace el merge con el anterior módulo
                 low_memory=False
             )
 
@@ -55,7 +58,7 @@ def cargar_y_cruzar_datos(meses, ruta_base):
             # Se añaden los DataFrames a las listas creadas inicialmente vacías
             caracteristicas_list.append(caracteristicas)
             ocupados_list.append(ocupados)
-
+        
         # Si se llegara a presentar un error de carga, este catch permite identificar el archivo con problemas
         # me pasó haciendo pruebas que uno de los meses en csv tenía tipo de separador distinto a los restantes 11 meses, lo que permitió identificarlo rapidamente
         except Exception as e:
@@ -65,7 +68,7 @@ def cargar_y_cruzar_datos(meses, ruta_base):
     caracteristicas_total = pd.concat(caracteristicas_list, ignore_index=True)
     ocupados_total = pd.concat(ocupados_list, ignore_index=True)
 
-    # Se cruzan los módulos mediante las llaves
+    # Se cruzan los módulos mediante las llaves 
     datos_cruzados = pd.merge(caracteristicas_total, ocupados_total, on='llave_cruce', how='left')
 
     return datos_cruzados
@@ -106,11 +109,23 @@ def calcular_totales(datos_cruzados):
     total_mujeres_con_pareja_ocupada_contributiva = mujeres_con_pareja_ocupada_contributiva['FEX_C18'].sum()/12
     print(f"Número de mujeres de 15 a 54 años y están casadas o en unión libre, conviven con su pareja y el cónyuge es un ocupado y afiliado a EPS contributiva enero - diciembre 2023: {total_mujeres_con_pareja_ocupada_contributiva}")
 
+    # Se calcula el ingreso total expandido de las personas ocupadas (OCI == 1)
+    ocupados_filtro = datos_cruzados['OCI'] == 1
+    datos_ocupados = datos_cruzados[ocupados_filtro]
+    # Se calcula el ingreso total expandido (ingreso mensual * factor de expansión)
+    datos_ocupados['Ingreso_expandido'] = datos_ocupados['P6500'] * datos_ocupados['FEX_C18']
+    ingreso_total_expandido = datos_ocupados['Ingreso_expandido'].sum() / 12  
+    factor_expansion_total = datos_ocupados['FEX_C18'].sum() / 12  # Dividimos entre 12 para obtener el total anual ponderado
+    # Se calcula el ingreso promedio ponderado
+    ingreso_promedio_expandido = ingreso_total_expandido / factor_expansion_total
+    print(f"Ingreso promedio expandido de las personas ocupadas enero - diciembre 2023: {ingreso_promedio_expandido}")
+
+
 # Lista de meses y ruta
 meses = ['Ene_2023', 'Feb_2023', 'Mar_2023', 'Abr_2023', 'May_2023', 'Jun_2023', 'Jul_2023', 'Ago_2023', 'Sep_2023', 'Oct_2023', 'Nov_2023', 'Dic_2023']
 ruta_base = '/content/drive/My Drive/Prueba_DNP_Subdireccion_Empleo_y_Seguridad_Social/GEIH_2023/'
 
-# Se invoca la función principal de cargar y cruzar los datos
+# Se invoca la función principal de cargar y cruzar los datos 
 datos_cruzados = cargar_y_cruzar_datos(meses, ruta_base)
 
 # Se invoca la función de cálculo de totales
